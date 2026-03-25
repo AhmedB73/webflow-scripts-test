@@ -11,5 +11,10 @@
       "version": "1.12.4"
     }
   },
-  "siteId": "69b18e54f46d41e6ecf2bf9e"
+  "siteId": "69b18e54f46d41e6ecf2bf9e",
+  "cloud": {
+    "name": "generic",
+    "buildCommand": "npm run build",
+    "outputDirectory": "dist"
+  }
 }
