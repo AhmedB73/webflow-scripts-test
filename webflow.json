@@ -1,0 +1,15 @@
+{
+  "devlink": {
+    "siteId": "69b18e54f46d41e6ecf2bf9e",
+    "authToken": "e4c4ba4010c49adfc7c8f7a6bc4c5ced8cb0ab0e3c08cb48c2188cbfbaf0c01f",
+    "rootDir": "./devlink"
+  },
+  "telemetry": {
+    "global": {
+      "allowTelemetry": true,
+      "lastPrompted": 1773322033131,
+      "version": "1.12.4"
+    }
+  },
+  "siteId": "69b18e54f46d41e6ecf2bf9e"
+}
