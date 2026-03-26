@@ -1,0 +1,18 @@
+.mz-cc-banner_componant {
+  position: fixed;
+  left: 2rem;
+  top: auto;
+  right: auto;
+  bottom: 2rem;
+  z-index: 9999;
+
+  display: none;
+}
+
+@media screen and (max-width: 479px) {
+  .mz-cc-banner_componant {
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.5rem;
+  }
+}

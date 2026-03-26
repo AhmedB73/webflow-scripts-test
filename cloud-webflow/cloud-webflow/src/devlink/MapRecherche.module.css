@@ -1,0 +1,34 @@
+.wrapper-barre_recherche {
+  display: flex;
+  width: 100%;
+  grid-column-gap: 3rem;
+  grid-row-gap: 3rem;
+}
+
+.div-block {
+  display: flex;
+  width: 100%;
+  padding-right: 2rem;
+  justify-content: flex-end;
+  align-items: center;
+
+  border: 1px solid black;
+  border-radius: 1.5rem;
+}
+
+.button-2 {
+  height: 5rem;
+  padding: 0px;
+  justify-content: flex-end;
+  align-items: center;
+  background-color: transparent;
+}
+
+.image {
+  height: 100%;
+}
+
+#w-node-_77a2e998-672e-9484-7f1e-49b1089a685d-089a685c {
+}
+#w-node-_77a2e998-672e-9484-7f1e-49b1089a685e-089a685c {
+}
