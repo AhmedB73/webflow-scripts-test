@@ -10,14 +10,16 @@ export async function GET() {
         'Authorization': `Bearer ${WEBFLOW_TOKEN}`, 
         'Accept': 'application/json' 
       },
-      next: { revalidate: 60 } // Optionnel : cache les données 60 secondes
+      next: { revalidate: 60 }
     });
 
     if (!res.ok) throw new Error("Erreur Webflow API");
 
-    // Typage ici pour corriger l'erreur "items n'existe pas sur unknown"
-    const data = (await res.json()) as any; // On force TypeScript à accepter "data"
-    const items = data.items ?? [];
+    // On dit clairement à TypeScript à quoi ressemble la réponse
+    const data = await res.json() as { items?: any[] };
+    
+    // Si data.items n'existe pas, on prend un tableau vide
+    const items = data?.items || [];
     
     const clean = items
       .map((item: any) => ({
