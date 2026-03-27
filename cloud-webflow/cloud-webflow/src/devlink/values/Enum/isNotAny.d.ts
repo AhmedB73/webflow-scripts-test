@@ -1,3 +1,3 @@
 export declare const isNotAny: (
   allowList: string[]
-) => (value: string) => boolean;
+) => (value: string | undefined) => boolean;

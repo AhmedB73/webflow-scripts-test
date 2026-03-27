@@ -1,0 +1,15 @@
+.card {
+  display: flex;
+  padding: 2rem;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  grid-column-gap: 3rem;
+  grid-row-gap: 3rem;
+
+  background-color: hsla(254, 74.47%, 53.00%, 1.00);
+}
+
+.wrapper-img {
+  width: 100%;
+  aspect-ratio: 16/9;
+}

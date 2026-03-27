@@ -3,10 +3,11 @@ import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Navbar, MapRecherche } from "@/devlink";
 
-const Map = dynamic(() => import("./components/MapComponent"), {
+// LA MAGIE EST ICI : On dit à Next.js de ne JAMAIS charger la carte sur le serveur
+const MapComponent = dynamic(() => import("../components/MapComponent"), {
   ssr: false,
   loading: () => (
-    <div style={{ height: "500px", background: "#000", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+    <div style={{ height: "600px", background: "#000", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
       Chargement de la carte...
     </div>
   ),
@@ -29,27 +30,20 @@ export default function Home() {
       .catch((err) => console.error("Erreur API:", err));
   }, []);
 
-  const handleSearch = useCallback(
-    async (value: string) => {
-      if (value.length < 2) { setSuggestions([]); return; }
-      const filteredCMS = magasinsCMS.filter((m: any) =>
-        m.name?.toLowerCase().includes(value.toLowerCase())
-      );
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&limit=4`);
-        const geoData = (await res.json()) as any[];
-        const geoResults = geoData.map((g) => ({
-          id: `geo-${g.place_id}`,
-          name: g.display_name,
-          type: "geo",
-          lat: parseFloat(g.lat),
-          lng: parseFloat(g.lon),
-        }));
-        setSuggestions([...filteredCMS, ...geoResults]);
-      } catch (e) { setSuggestions(filteredCMS); }
-    },
-    [magasinsCMS]
-  );
+  const handleSearch = useCallback(async (value: string) => {
+    if (value.length < 2) { setSuggestions([]); return; }
+    const filteredCMS = magasinsCMS.filter((m: any) =>
+      m.name?.toLowerCase().includes(value.toLowerCase())
+    );
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&limit=4`);
+      const geoData = (await res.json()) as any[];
+      const geoResults = geoData.map((g) => ({
+        id: `geo-${g.place_id}`, name: g.display_name, type: "geo", lat: parseFloat(g.lat), lng: parseFloat(g.lon),
+      }));
+      setSuggestions([...filteredCMS, ...geoResults]);
+    } catch (e) { setSuggestions(filteredCMS); }
+  }, [magasinsCMS]);
 
   useEffect(() => {
     const timer = setTimeout(() => handleSearch(query), 500);
@@ -61,87 +55,25 @@ export default function Home() {
       <Navbar />
       <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
         
-        {/* Conteneur Recherche */}
         <div style={{ position: "relative", marginBottom: "20px" }}>
-          
           <MapRecherche
             slot={
-              <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                width: "100%", 
-                border: "1px solid white", // LE CONTOUR BLANC ICI !!!
-                borderRadius: "8px",
-                background: "#000000"
-              }}>
+              <div style={{ display: "flex", alignItems: "center", width: "100%", border: "1px solid white", borderRadius: "8px", background: "#000" }}>
                 <input
                   value={query}
                   onChange={(e) => { setQuery(e.target.value); setShowSugg(true); }}
                   onFocus={() => setShowSugg(true)}
                   placeholder="Trouver un magasin ou une ville..."
-                  style={{
-                    flex: 1,
-                    padding: "12px 14px",
-                    border: "none",
-                    outline: "none",
-                    fontSize: "16px",
-                    background: "transparent",
-                    color: "white", 
-                  }}
+                  style={{ flex: 1, padding: "12px 14px", border: "none", outline: "none", fontSize: "16px", background: "transparent", color: "white" }}
                 />
-                <button
-                  onClick={() => handleSearch(query)}
-                  style={{ padding: "10px", background: "none", border: "none", cursor: "pointer" }}
-                >
-                  <img
-                    src="https://cdn.prod.website-files.com/69c4fbdddbeddb6a9803391e/69c4fbeec4cd900022857e9d_Ico%CC%82ne%20Recherche%20(1).png"
-                    alt="Rechercher"
-                    style={{ width: "20px", height: "20px", filter: "invert(1)" }} 
-                  />
-                </button>
               </div>
             }
           />
-
-          {/* Suggestions en ABSOLUTE */}
-          {showSugg && suggestions.length > 0 && (
-            <ul
-              style={{
-                position: "absolute",
-                top: "105%",
-                left: 0,
-                right: 0,
-                background: "#111",
-                border: "1px solid #444",
-                listStyle: "none",
-                padding: 0,
-                margin: 0,
-                borderRadius: "8px",
-                zIndex: 2000,
-              }}
-            >
-              {suggestions.map((s) => (
-                <li
-                  key={s.id}
-                  onClick={() => {
-                    setActiveCoords([s.lat, s.lng]);
-                    setQuery(s.name);
-                    setShowSugg(false);
-                  }}
-                  style={{ padding: "12px 16px", cursor: "pointer", borderBottom: "1px solid #222", color: "white" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#222")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  {s.type === "cms" ? "📍 " : "🌍 "}{s.name}
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
 
-        {/* Carte */}
         <div style={{ height: "600px", borderRadius: "12px", overflow: "hidden", border: "1px solid #333", position: "relative", zIndex: 1 }}>
-          <Map {...({ stores: magasinsCMS, activeCoords } as any)} />
+          {/* On appelle notre carte dynamique ici */}
+          <MapComponent stores={magasinsCMS} activeCoords={activeCoords} />
         </div>
       </div>
     </main>

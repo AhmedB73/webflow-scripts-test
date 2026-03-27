@@ -1,1 +1,2 @@
-export const doesNotEqual = (threshold) => (value) => value !== threshold;
+export const doesNotEqual = (threshold) => (value) =>
+  value == null || value !== threshold;

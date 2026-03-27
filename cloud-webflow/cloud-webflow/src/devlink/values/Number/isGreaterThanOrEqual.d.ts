@@ -1,3 +1,3 @@
 export declare const isGreaterThanOrEqual: (
   threshold: number
-) => (value: number) => boolean;
+) => (value: number | undefined) => boolean;

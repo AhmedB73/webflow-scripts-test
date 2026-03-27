@@ -16,7 +16,7 @@ export function MapRecherche({
       className={_utils.cx(_styles, "wrapper-barre_recherche")}
       tag="div"
     >
-      {slot || (
+      {slot ?? (
         <>
           <DOM
             className={_utils.cx(_styles, "div-block")}
