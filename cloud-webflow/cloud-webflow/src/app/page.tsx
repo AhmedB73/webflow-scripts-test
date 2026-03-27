@@ -21,8 +21,20 @@ export default function Home() {
   const [showSugg, setShowSugg] = useState(false);
 
   useEffect(() => {
-    fetch("/api/webflow-cms")
-      .then((res) => res.json())
+    // On construit l'URL complète et absolue pour éviter l'erreur 404
+    const apiUrl = typeof window !== "undefined" 
+      ? `${window.location.origin}/api/webflow-cms` 
+      : "/api/webflow-cms";
+
+    fetch(apiUrl)
+      .then(async (res) => {
+        // Petite sécurité : si ça renvoie encore du HTML, on le bloque avant qu'il fasse planter le JSON
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new TypeError("L'API n'a pas renvoyé du JSON (probablement une erreur 404)");
+        }
+        return res.json();
+      })
       .then((data: any) => {
         const stores = Array.isArray(data) ? data : [];
         setMagasinsCMS(stores);
