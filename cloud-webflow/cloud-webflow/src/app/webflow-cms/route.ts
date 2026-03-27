@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+// CETTE LIGNE EST LA CLÉ : Elle empêche l'hébergeur de transformer l'API en page 404
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const WEBFLOW_TOKEN = "2194c25a0475be234140db779b516216df929727e10dc719c95ddd0548a1c78d";
   const COLLECTION_ID = "69c4fc1f8fc03926502d71ae";
@@ -15,11 +18,8 @@ export async function GET() {
 
     if (!res.ok) throw new Error("Erreur Webflow API");
 
-    // On dit clairement à TypeScript à quoi ressemble la réponse
-    const data = await res.json() as { items?: any[] };
-    
-    // Si data.items n'existe pas, on prend un tableau vide
-    const items = data?.items || [];
+    const data: any = await res.json();
+    const items = data.items ?? [];
     
     const clean = items
       .map((item: any) => ({
