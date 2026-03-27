@@ -16,9 +16,10 @@ export async function GET() {
     if (!res.ok) throw new Error("Erreur Webflow API");
 
     // Typage ici pour corriger l'erreur "items n'existe pas sur unknown"
-    const data = (await res.json()) as { items: any[] };
+    const data = (await res.json()) as any; // On force TypeScript à accepter "data"
+    const items = data.items ?? [];
     
-    const clean = data.items
+    const clean = items
       .map((item: any) => ({
         id: item.id,
         name: item.fieldData?.name ?? "Sans nom",
