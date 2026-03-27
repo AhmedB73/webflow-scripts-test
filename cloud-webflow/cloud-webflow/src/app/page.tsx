@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Navbar, MapRecherche } from "@/devlink";
 
-// LA MAGIE EST ICI : On dit à Next.js de ne JAMAIS charger la carte sur le serveur
 const MapComponent = dynamic(() => import("../components/MapComponent"), {
   ssr: false,
   loading: () => (
@@ -21,14 +20,13 @@ export default function Home() {
   const [showSugg, setShowSugg] = useState(false);
 
   useEffect(() => {
-    // On construit l'URL complète et absolue pour éviter l'erreur 404
+    // LA SOLUTION EST ICI : On ajoute /appa devant le chemin de l'API
     const apiUrl = typeof window !== "undefined" 
-      ? `${window.location.origin}/api/webflow-cms` 
-      : "/api/webflow-cms";
+      ? `${window.location.origin}/appa/api/webflow-cms` 
+      : "/appa/api/webflow-cms";
 
     fetch(apiUrl)
       .then(async (res) => {
-        // Petite sécurité : si ça renvoie encore du HTML, on le bloque avant qu'il fasse planter le JSON
         const contentType = res.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           throw new TypeError("L'API n'a pas renvoyé du JSON (probablement une erreur 404)");
@@ -84,7 +82,6 @@ export default function Home() {
         </div>
 
         <div style={{ height: "600px", borderRadius: "12px", overflow: "hidden", border: "1px solid #333", position: "relative", zIndex: 1 }}>
-          {/* On appelle notre carte dynamique ici */}
           <MapComponent stores={magasinsCMS} activeCoords={activeCoords} />
         </div>
       </div>
