@@ -20,7 +20,7 @@ export default function Home() {
   const [showSugg, setShowSugg] = useState(false);
 
   useEffect(() => {
-    // LA SOLUTION EST ICI : On ajoute /appa devant le chemin de l'API
+    // URL avec /appa pour Webflow Cloud
     const apiUrl = typeof window !== "undefined" 
       ? `${window.location.origin}/appa/api/webflow-cms` 
       : "/appa/api/webflow-cms";
@@ -79,6 +79,38 @@ export default function Home() {
               </div>
             }
           />
+
+          {/* NOUVEAU BLOC : La liste des suggestions qui s'affiche sous la barre de recherche */}
+          {showSugg && suggestions.length > 0 && (
+            <ul style={{
+              position: "absolute", top: "100%", left: 0, right: 0,
+              background: "#222", border: "1px solid #444", borderRadius: "8px",
+              listStyle: "none", padding: 0, margin: "5px 0 0 0", zIndex: 1000, color: "white",
+              maxHeight: "250px", overflowY: "auto"
+            }}>
+              {suggestions.map((sugg) => (
+                <li
+                  key={sugg.id}
+                  onClick={() => {
+                    // Au clic, on déplace la carte sur les coordonnées, on remplit l'input et on ferme la liste
+                    setActiveCoords([sugg.lat, sugg.lng]);
+                    setQuery(sugg.name);
+                    setShowSugg(false);
+                  }}
+                  style={{ padding: "12px", borderBottom: "1px solid #444", cursor: "pointer", fontSize: "14px" }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "#333"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                >
+                  <strong style={{ color: sugg.type === 'cms' ? '#b084f5' : 'white' }}>
+                    {sugg.name}
+                  </strong>
+                  <span style={{ fontSize: "12px", color: "#888", marginLeft: "8px" }}>
+                    {sugg.type === 'cms' ? '(Magasin)' : '(Lieu)'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div style={{ height: "600px", borderRadius: "12px", overflow: "hidden", border: "1px solid #333", position: "relative", zIndex: 1 }}>
