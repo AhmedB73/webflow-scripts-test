@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation"; // Pour lire l'URL
+import { useState, useEffect, useMemo, Suspense } from "react"; // Ajout de Suspense
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Navbar, BarRechercheFilter } from "@/devlink";
 
@@ -13,15 +13,13 @@ const MapComponent = dynamic(() => import("../components/MapComponent"), {
   ),
 });
 
-export default function Home() {
+// --- 1. COMPOSANT INTERNE (Logique de filtrage) ---
+function MapContent() {
   const [magasinsCMS, setMagasinsCMS] = useState<any[]>([]);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   
-  // 1. On récupère les paramètres de l'URL
   const searchParams = useSearchParams();
   
-  // 2. On extrait toutes les valeurs de "marque" dans l'URL
-  // Exemple: ?marque=Carrefour&marque=Intermarche -> ["Carrefour", "Intermarche"]
   const marquesSelectionnees = useMemo(() => {
     return searchParams.getAll("marque");
   }, [searchParams]);
@@ -46,17 +44,11 @@ export default function Home() {
       .catch((err) => console.error("Erreur API:", err));
   }, []);
 
-  // 3. LOGIQUE DE FILTRAGE : On filtre les magasins du CMS en fonction de l'URL
   const magasinsAfffiches = useMemo(() => {
-    // Si aucune marque n'est dans l'URL, on affiche tout par défaut
     if (marquesSelectionnees.length === 0) {
       return magasinsCMS;
     }
-
-    // Sinon, on garde seulement les magasins dont le "name" (ou un champ catégorie) 
-    // correspond à ce qui est dans l'URL
     return magasinsCMS.filter((magasin) => {
-      // On vérifie si le nom du magasin contient l'une des marques sélectionnées
       return marquesSelectionnees.some(marque => 
         magasin.name?.toLowerCase().includes(marque.toLowerCase())
       );
@@ -64,50 +56,52 @@ export default function Home() {
   }, [magasinsCMS, marquesSelectionnees]);
 
   return (
+    <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
+      <div style={{ position: "relative", marginBottom: "20px", zIndex: 60 }}>
+        <BarRechercheFilter 
+          isMenuOpen={isFilterMenuOpen} 
+          onToggleMenu={{ 
+              onClick: (e: any) => { 
+                  e?.preventDefault(); 
+                  setIsFilterMenuOpen(!isFilterMenuOpen); 
+              } 
+          }}
+          onSearchClick={{ 
+              onClick: (e: any) => { 
+                  e?.preventDefault(); 
+                  setIsFilterMenuOpen(false);
+              } 
+          }}
+          menuOptionsSlot={<div />} 
+        />
+      </div>
+
+      {marquesSelectionnees.length > 0 && (
+        <div style={{ marginBottom: "10px", color: "#b084f5" }}>
+          Filtre actif : <strong>{marquesSelectionnees.join(", ")}</strong> 
+          ({magasinsAfffiches.length} magasins trouvés)
+        </div>
+      )}
+
+      <div style={{ height: "600px", borderRadius: "12px", overflow: "hidden", border: "1px solid #333", position: "relative", zIndex: 1 }}>
+        <MapComponent 
+          stores={magasinsAfffiches} 
+          activeCoords={[43.3595, 5.3524]} 
+        />
+      </div>
+    </div>
+  );
+}
+
+// --- 2. COMPOSANT PRINCIPAL (Celui qui est exporté) ---
+export default function Home() {
+  return (
     <main style={{ background: "#000000", minHeight: "100vh", color: "white" }}>
       <Navbar />
-      
-      <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
-        
-        {/* BARRE DE FILTRE WEBFLOW */}
-        <div style={{ position: "relative", marginBottom: "20px", zIndex: 60 }}>
-          <BarRechercheFilter 
-            isMenuOpen={isFilterMenuOpen} 
-            onToggleMenu={{ 
-                onClick: (e: any) => { 
-                    e?.preventDefault(); 
-                    setIsFilterMenuOpen(!isFilterMenuOpen); 
-                } 
-            }}
-            onSearchClick={{ 
-                onClick: (e: any) => { 
-                    e?.preventDefault(); 
-                    // Optionnel: on peut fermer le menu ici
-                    setIsFilterMenuOpen(false);
-                } 
-            }}
-            // Note: Ton slot est vide car les cases sont gérées par ton formulaire Webflow natif
-            menuOptionsSlot={<div />} 
-          />
-        </div>
-
-        {/* AFFICHAGE DU RÉSUMÉ DU FILTRE */}
-        {marquesSelectionnees.length > 0 && (
-          <div style={{ marginBottom: "10px", color: "#b084f5" }}>
-            Filtre actif : <strong>{marquesSelectionnees.join(", ")}</strong> 
-            ({magasinsAfffiches.length} magasins trouvés)
-          </div>
-        )}
-
-        {/* LA CARTE AVEC LES MAGASINS FILTRÉS */}
-        <div style={{ height: "600px", borderRadius: "12px", overflow: "hidden", border: "1px solid #333", position: "relative", zIndex: 1 }}>
-          <MapComponent 
-            stores={magasinsAfffiches} 
-            activeCoords={[43.3595, 5.3524]} 
-          />
-        </div>
-
-      </div>
+      {/* Suspense est OBLIGATOIRE ici pour que le build Webflow Cloud réussisse */}
+      <Suspense fallback={<div style={{ textAlign: 'center', padding: '20px' }}>Chargement des filtres...</div>}>
+        <MapContent />
+      </Suspense>
     </main>
   );
 }
