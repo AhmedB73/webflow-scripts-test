@@ -1,7 +1,11 @@
 import * as React from "react";
+import { Props } from "./shared/types";
 declare const CodeBlock: React.ForwardRefExoticComponent<
-  import("./shared/types").ElementProps<"pre"> & {
-    children?: React.ReactNode | undefined;
+  Omit<Props<"pre">, "code" | "language" | "theme" | "lineNumbers"> & {
+    code?: string;
+    language?: string;
+    theme?: string;
+    lineNumbers?: boolean;
   } & React.RefAttributes<HTMLPreElement>
 >;
 export default CodeBlock;

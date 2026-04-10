@@ -13,7 +13,10 @@ export type RenderImage = React.FC<
     HTMLImageElement
   >
 >;
-export declare const DevLinkContext: any;
+export declare const DevLinkContext: React.Context<{
+  renderLink?: RenderLink;
+  renderImage?: RenderImage;
+}>;
 type DevLinkProviderProps = {
   renderLink?: RenderLink;
   renderImage?: RenderImage;

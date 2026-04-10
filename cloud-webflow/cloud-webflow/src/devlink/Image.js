@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
+import _styles from "./css/classes.module.css";
+import * as _utils from "./utils";
 import Block from "./_Builtin/Block";
 import Image2 from "./_Builtin/Image";
-import * as _utils from "./utils";
-import _styles from "./Image.module.css";
 
 export function Image({
   as: _Component = Block,

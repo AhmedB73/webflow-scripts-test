@@ -1,5 +1,7 @@
 "use client";
 import React from "react";
+import _styles from "./css/classes.module.css";
+import * as _utils from "./utils";
 import Block from "./_Builtin/Block";
 import Icon from "./_Builtin/Icon";
 import Image from "./_Builtin/Image";
@@ -8,8 +10,6 @@ import NavbarButton from "./_Builtin/NavbarButton";
 import NavbarLink from "./_Builtin/NavbarLink";
 import NavbarMenu from "./_Builtin/NavbarMenu";
 import NavbarWrapper from "./_Builtin/NavbarWrapper";
-import * as _utils from "./utils";
-import _styles from "./Navbar.module.css";
 
 export function Navbar({ as: _Component = NavbarWrapper }) {
   return (

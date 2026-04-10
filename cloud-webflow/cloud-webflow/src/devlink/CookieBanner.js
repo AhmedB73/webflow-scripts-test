@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
+import _styles from "./css/classes.module.css";
+import * as _utils from "./utils";
 import Block from "./_Builtin/Block";
 import { CookieCard } from "./CookieCard";
-import * as _utils from "./utils";
-import _styles from "./CookieBanner.module.css";
 
 export function CookieBanner({ as: _Component = Block }) {
   return (

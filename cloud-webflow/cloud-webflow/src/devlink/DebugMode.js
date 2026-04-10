@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import HtmlEmbed from "./_Builtin/HtmlEmbed";
+import _styles from "./css/classes.module.css";
 import * as _utils from "./utils";
-import _styles from "./DebugMode.module.css";
+import HtmlEmbed from "./_Builtin/HtmlEmbed";
 
 export function DebugMode({ as: _Component = HtmlEmbed }) {
   return (

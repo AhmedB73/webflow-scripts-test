@@ -5,9 +5,9 @@ import NotSupported from "./_Builtin/NotSupported";
 
 export function Cms({ as: _Component = NotSupported }) {
   return (
-    <_Component _atom="DynamoWrapper">
-      <NotSupported _atom="DynamoList" />
-      <NotSupported _atom="DynamoEmpty" />
+    <_Component _atom="Collection List">
+      <NotSupported _atom="Collection List Items" />
+      <NotSupported _atom="Empty State" />
     </_Component>
   );
 }

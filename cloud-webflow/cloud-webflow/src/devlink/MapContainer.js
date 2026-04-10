@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import Block from "./_Builtin/Block";
+import _styles from "./css/classes.module.css";
 import * as _utils from "./utils";
-import _styles from "./MapContainer.module.css";
+import Block from "./_Builtin/Block";
 
 export function MapContainer({ as: _Component = Block }) {
   return (

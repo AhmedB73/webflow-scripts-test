@@ -1,7 +1,8 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation"; // Pour lire l'URL
 import dynamic from "next/dynamic";
-import { Navbar, MapRecherche } from "@/devlink";
+import { Navbar, BarRechercheFilter } from "@/devlink";
 
 const MapComponent = dynamic(() => import("../components/MapComponent"), {
   ssr: false,
@@ -14,108 +15,98 @@ const MapComponent = dynamic(() => import("../components/MapComponent"), {
 
 export default function Home() {
   const [magasinsCMS, setMagasinsCMS] = useState<any[]>([]);
-  const [activeCoords, setActiveCoords] = useState<[number, number]>([43.3595, 5.3524]);
-  const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [showSugg, setShowSugg] = useState(false);
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  
+  // 1. On récupère les paramètres de l'URL
+  const searchParams = useSearchParams();
+  
+  // 2. On extrait toutes les valeurs de "marque" dans l'URL
+  // Exemple: ?marque=Carrefour&marque=Intermarche -> ["Carrefour", "Intermarche"]
+  const marquesSelectionnees = useMemo(() => {
+    return searchParams.getAll("marque");
+  }, [searchParams]);
 
   useEffect(() => {
-    // URL avec /appa pour Webflow Cloud
-    const apiUrl = typeof window !== "undefined" 
-      ? `${window.location.origin}/appa/api/webflow-cms` 
-      : "/appa/api/webflow-cms";
+    const isLocal = typeof window !== "undefined" && 
+      (window.location.hostname === "localhost" || window.location.hostname.includes("192.168."));
+      
+    const apiUrl = isLocal ? "/api/webflow-cms" : "/appa/api/webflow-cms";
 
     fetch(apiUrl)
       .then(async (res) => {
         const contentType = res.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-          throw new TypeError("L'API n'a pas renvoyé du JSON (probablement une erreur 404)");
+          throw new TypeError(`L'API a échoué.`);
         }
         return res.json();
       })
       .then((data: any) => {
-        const stores = Array.isArray(data) ? data : [];
-        setMagasinsCMS(stores);
+        setMagasinsCMS(Array.isArray(data) ? data : []);
       })
       .catch((err) => console.error("Erreur API:", err));
   }, []);
 
-  const handleSearch = useCallback(async (value: string) => {
-    if (value.length < 2) { setSuggestions([]); return; }
-    const filteredCMS = magasinsCMS.filter((m: any) =>
-      m.name?.toLowerCase().includes(value.toLowerCase())
-    );
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&limit=4`);
-      const geoData = (await res.json()) as any[];
-      const geoResults = geoData.map((g) => ({
-        id: `geo-${g.place_id}`, name: g.display_name, type: "geo", lat: parseFloat(g.lat), lng: parseFloat(g.lon),
-      }));
-      setSuggestions([...filteredCMS, ...geoResults]);
-    } catch (e) { setSuggestions(filteredCMS); }
-  }, [magasinsCMS]);
+  // 3. LOGIQUE DE FILTRAGE : On filtre les magasins du CMS en fonction de l'URL
+  const magasinsAfffiches = useMemo(() => {
+    // Si aucune marque n'est dans l'URL, on affiche tout par défaut
+    if (marquesSelectionnees.length === 0) {
+      return magasinsCMS;
+    }
 
-  useEffect(() => {
-    const timer = setTimeout(() => handleSearch(query), 500);
-    return () => clearTimeout(timer);
-  }, [query, handleSearch]);
+    // Sinon, on garde seulement les magasins dont le "name" (ou un champ catégorie) 
+    // correspond à ce qui est dans l'URL
+    return magasinsCMS.filter((magasin) => {
+      // On vérifie si le nom du magasin contient l'une des marques sélectionnées
+      return marquesSelectionnees.some(marque => 
+        magasin.name?.toLowerCase().includes(marque.toLowerCase())
+      );
+    });
+  }, [magasinsCMS, marquesSelectionnees]);
 
   return (
     <main style={{ background: "#000000", minHeight: "100vh", color: "white" }}>
       <Navbar />
+      
       <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
         
-        <div style={{ position: "relative", marginBottom: "20px" }}>
-          <MapRecherche
-            slot={
-              <div style={{ display: "flex", alignItems: "center", width: "100%", border: "1px solid white", borderRadius: "8px", background: "#000" }}>
-                <input
-                  value={query}
-                  onChange={(e) => { setQuery(e.target.value); setShowSugg(true); }}
-                  onFocus={() => setShowSugg(true)}
-                  placeholder="Trouver un magasin ou une ville..."
-                  style={{ flex: 1, padding: "12px 14px", border: "none", outline: "none", fontSize: "16px", background: "transparent", color: "white" }}
-                />
-              </div>
-            }
+        {/* BARRE DE FILTRE WEBFLOW */}
+        <div style={{ position: "relative", marginBottom: "20px", zIndex: 60 }}>
+          <BarRechercheFilter 
+            isMenuOpen={isFilterMenuOpen} 
+            onToggleMenu={{ 
+                onClick: (e: any) => { 
+                    e?.preventDefault(); 
+                    setIsFilterMenuOpen(!isFilterMenuOpen); 
+                } 
+            }}
+            onSearchClick={{ 
+                onClick: (e: any) => { 
+                    e?.preventDefault(); 
+                    // Optionnel: on peut fermer le menu ici
+                    setIsFilterMenuOpen(false);
+                } 
+            }}
+            // Note: Ton slot est vide car les cases sont gérées par ton formulaire Webflow natif
+            menuOptionsSlot={<div />} 
           />
-
-          {/* NOUVEAU BLOC : La liste des suggestions qui s'affiche sous la barre de recherche */}
-          {showSugg && suggestions.length > 0 && (
-            <ul style={{
-              position: "absolute", top: "100%", left: 0, right: 0,
-              background: "#222", border: "1px solid #444", borderRadius: "8px",
-              listStyle: "none", padding: 0, margin: "5px 0 0 0", zIndex: 1000, color: "white",
-              maxHeight: "250px", overflowY: "auto"
-            }}>
-              {suggestions.map((sugg) => (
-                <li
-                  key={sugg.id}
-                  onClick={() => {
-                    // Au clic, on déplace la carte sur les coordonnées, on remplit l'input et on ferme la liste
-                    setActiveCoords([sugg.lat, sugg.lng]);
-                    setQuery(sugg.name);
-                    setShowSugg(false);
-                  }}
-                  style={{ padding: "12px", borderBottom: "1px solid #444", cursor: "pointer", fontSize: "14px" }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "#333"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                >
-                  <strong style={{ color: sugg.type === 'cms' ? '#b084f5' : 'white' }}>
-                    {sugg.name}
-                  </strong>
-                  <span style={{ fontSize: "12px", color: "#888", marginLeft: "8px" }}>
-                    {sugg.type === 'cms' ? '(Magasin)' : '(Lieu)'}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
 
+        {/* AFFICHAGE DU RÉSUMÉ DU FILTRE */}
+        {marquesSelectionnees.length > 0 && (
+          <div style={{ marginBottom: "10px", color: "#b084f5" }}>
+            Filtre actif : <strong>{marquesSelectionnees.join(", ")}</strong> 
+            ({magasinsAfffiches.length} magasins trouvés)
+          </div>
+        )}
+
+        {/* LA CARTE AVEC LES MAGASINS FILTRÉS */}
         <div style={{ height: "600px", borderRadius: "12px", overflow: "hidden", border: "1px solid #333", position: "relative", zIndex: 1 }}>
-          <MapComponent stores={magasinsCMS} activeCoords={activeCoords} />
+          <MapComponent 
+            stores={magasinsAfffiches} 
+            activeCoords={[43.3595, 5.3524]} 
+          />
         </div>
+
       </div>
     </main>
   );

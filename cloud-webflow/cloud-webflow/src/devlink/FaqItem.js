@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
+import _styles from "./css/classes.module.css";
+import * as _utils from "./utils";
 import DOM from "./_Builtin/DOM";
 import Paragraph from "./_Builtin/Paragraph";
-import * as _utils from "./utils";
-import _styles from "./FaqItem.module.css";
 
 export function FaqItem({
   as: _Component = DOM,

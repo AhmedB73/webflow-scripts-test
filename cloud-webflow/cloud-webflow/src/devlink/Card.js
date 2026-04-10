@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
+import _styles from "./css/classes.module.css";
+import * as _utils from "./utils";
 import Block from "./_Builtin/Block";
 import { Image } from "./Image";
-import * as _utils from "./utils";
-import _styles from "./Card.module.css";
 
 export function Card({
   as: _Component = Block,

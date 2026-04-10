@@ -1,10 +1,10 @@
 "use client";
 import React from "react";
+import _styles from "./css/classes.module.css";
+import * as _utils from "./utils";
 import Block from "./_Builtin/Block";
 import DOM from "./_Builtin/DOM";
 import Image from "./_Builtin/Image";
-import * as _utils from "./utils";
-import _styles from "./MapRecherche.module.css";
 
 export function MapRecherche({
   as: _Component = Block,
